@@ -21,4 +21,11 @@ export class NFTTokensService {
       { alternativeMediaFiles },
     );
   }
+
+  async getToken(
+    contractAddress: string,
+    tokenId: string,
+  ): Promise<NFTTokensDocument> {
+    return this.nftTokensModel.findOne({ contractAddress, tokenId });
+  }
 }
