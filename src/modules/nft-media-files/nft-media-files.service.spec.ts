@@ -5,6 +5,7 @@ import configuration from '../configuration';
 import { NFTTokensService } from '../nft-tokens/nft-tokens.service';
 import { MediaStorageService } from '../media-storage/media-storage.service';
 import { EthereumService } from '../ethereum/ethereum.service';
+import { NFTTokensDocument } from 'datascraper-schema';
 
 describe('NFT Media files', () => {
   let service: NFTMediaFilesService;
@@ -29,6 +30,7 @@ describe('NFT Media files', () => {
           provide: NFTTokensService,
           useValue: {
             updateMediaFiles: jest.fn(),
+            getToken: jest.fn(),
           },
         },
       ],
@@ -157,9 +159,7 @@ describe('NFT Media files', () => {
     const mediaMsg = {
       contractAddress: '0x28472a58A490c5e09A238847F66A68a47cC76f0f',
       tokenId: '0',
-      mediaFiles: [
-        'ipfs://Qmb4VB12RsXW6DaKranEdgnMUTzfyVBEb5eZ1v7JCEUxL1/',
-      ],
+      mediaFiles: ['ipfs://Qmb4VB12RsXW6DaKranEdgnMUTzfyVBEb5eZ1v7JCEUxL1/'],
     };
     jest
       .spyOn(mediaStorageService, 'upload')
@@ -167,6 +167,30 @@ describe('NFT Media files', () => {
     jest
       .spyOn(nftTokensService, 'updateMediaFiles')
       .mockImplementation(async () => {});
+    await service.HandleMediaFiles(mediaMsg);
+    expect(mediaStorageService.upload).toBeCalled();
+    expect(nftTokensService.updateMediaFiles).toBeCalled();
+  });
+
+  it('Cryptofootball - should save new uploaded media files successfully', async () => {
+    const mediaMsg = {
+      contractAddress: '0x6e1b98153399d5E4e710c1A0b803c74d3d7F2957',
+      tokenId: '1',
+      mediaFiles: [],
+    };
+    jest
+      .spyOn(mediaStorageService, 'upload')
+      .mockReturnValue(Promise.resolve('https://image.com'));
+    jest.spyOn(nftTokensService, 'getToken').mockReturnValue(
+      Promise.resolve({
+        contractAddress: '0x6e1b98153399d5E4e710c1A0b803c74d3d7F2957',
+        tokenId: '1',
+        metadata: {
+          image:
+            'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaW5ZTWluIG1lZXQiIHZpZXdCb3g9IjAgMCAzNTAgMzUwIj48c3R5bGU+LmJhc2UgeyBmaWxsOiB3aGl0ZTsgZm9udC1mYW1pbHk6IG1vbm9zcGFjZTsgZm9udC1zaXplOiAxNHB4OyB9PC9zdHlsZT48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJibGFjayIgLz48dGV4dCB4PSIxMCIgeT0iMjAiIGNsYXNzPSJiYXNlIiBmb250LXNpemU9ImxhcmdlciIgZm9udC13ZWlnaHQ9ImJvbGQiPlRlYW0gIzE8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjQwIiBjbGFzcz0iYmFzZSI+U2FtIERhcm5vbGQ8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjYwIiBjbGFzcz0iYmFzZSI+Q2hhc2UgQ2xheXBvb2w8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjgwIiBjbGFzcz0iYmFzZSI+Q2VlRGVlIExhbWI8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEwMCIgY2xhc3M9ImJhc2UiPk1pa2UgRGF2aXM8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEyMCIgY2xhc3M9ImJhc2UiPkNodWJhIEh1YmJhcmQ8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjE0MCIgY2xhc3M9ImJhc2UiPkRhbGxhcyBHb2VkZXJ0PC90ZXh0Pjx0ZXh0IHg9IjEwIiB5PSIxNjAiIGNsYXNzPSJiYXNlIj5Mb2dhbiBUaG9tYXM8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjE4MCIgY2xhc3M9ImJhc2UiPk8uSi4gSG93YXJkPC90ZXh0Pjwvc3ZnPg==',
+        },
+      } as NFTTokensDocument),
+    );
     await service.HandleMediaFiles(mediaMsg);
     expect(mediaStorageService.upload).toBeCalled();
     expect(nftTokensService.updateMediaFiles).toBeCalled();

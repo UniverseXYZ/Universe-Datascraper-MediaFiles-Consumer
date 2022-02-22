@@ -52,12 +52,20 @@ export class NFTMediaFilesService {
       }
 
       // Special NFT
+      this.logger.debug(
+        `Special NFT - Handling media files for ${contractAddress}/${tokenId}`,
+      );
       const { success, file, extension, contentType } =
         await mediaFileRule.mediaFileHandler(
           tokenId,
           this.ethereumService.ether,
+          contractAddress,
+          this.nftTokensService,
         );
       if (success) {
+        this.logger.debug(
+          `Special NFT - Uploading media file for ${contractAddress}/${tokenId}`,
+        );
         const alternativeMediaFiles: AlternativeMediaFile[] = [];
         const mediaType = getMediaTypeByContentType(contentType);
         const mediaPath = await this.uploadMediaFile(
@@ -71,6 +79,9 @@ export class NFTMediaFilesService {
           type: mediaType,
           url: mediaPath,
         });
+        this.logger.debug(
+          `Special NFT - Media file ${mediaType}/${mediaPath} uploaded for ${contractAddress}/${tokenId}`,
+        );
         await this.nftTokensService.updateMediaFiles(
           contractAddress,
           tokenId,
@@ -79,6 +90,8 @@ export class NFTMediaFilesService {
         this.logger.debug(
           `Special NFT - Handled media files for ${contractAddress}/${tokenId}`,
         );
+      } else {
+        this.logger.error('Special NFT - Fetching media files failed');
       }
     }
   }
@@ -92,12 +105,22 @@ export class NFTMediaFilesService {
     for (let i = 0; i < mediaFiles.length; i++) {
       const mediaFileUrl = mediaFiles[i];
       const url = this.formatMediaUri(mediaFileUrl);
+      this.logger.debug(
+        `Standard NFT - Downloading media file ${url} for ${contractAddress}/${tokenId}`,
+      );
       const { success, file, extension, contentType } =
         await this.downloadMediaFile(url);
 
       if (!success) {
+        this.logger.error(
+          `Standard NFT - Error downloading media file ${url} for ${contractAddress}/${tokenId}`,
+        );
         continue;
       }
+
+      this.logger.debug(
+        `Standard NFT - Media file ${url} downloaded for ${contractAddress}/${tokenId}`,
+      );
 
       const mediaType = getMediaTypeByContentType(contentType);
       const mediaPath = await this.uploadMediaFile(
@@ -111,6 +134,9 @@ export class NFTMediaFilesService {
         type: mediaType,
         url: mediaPath,
       });
+      this.logger.debug(
+        `Standard NFT - Media file ${mediaType}/${mediaPath} uploaded for ${contractAddress}/${tokenId}`,
+      );
       // if extension is html, add iframe alternative
       if (extension === 'html') {
         alternativeMediaFiles.push({
@@ -123,6 +149,9 @@ export class NFTMediaFilesService {
       contractAddress,
       tokenId,
       alternativeMediaFiles,
+    );
+    this.logger.debug(
+      `Standard NFT - Media files updated in DB for ${contractAddress}/${tokenId}`,
     );
   }
 
@@ -152,7 +181,7 @@ export class NFTMediaFilesService {
 
       const statusCode = response.status;
       if (statusCode !== HttpStatus.OK) {
-        this.logger.error('Error downloading image');
+        this.logger.error(`Error downloading image from ${url}`);
         return { success: false };
       }
       const contentType = response.headers['content-type'];

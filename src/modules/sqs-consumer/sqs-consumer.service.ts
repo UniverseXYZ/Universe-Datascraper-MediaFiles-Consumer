@@ -90,13 +90,13 @@ export class SqsConsumerService
   }
 
   onProcessingError(error: Error, message: AWS.SQS.Message): Promise<void> {
-    this.logger.log(`Processing error ${error.message}`);
+    this.logger.error(`Processing error ${error.message}`);
     this.deleteMessage(message);
     return;
   }
 
   onTimeoutError(error: Error, message: AWS.SQS.Message): Promise<void> {
-    this.logger.log(`Timeout error ${error.message}`);
+    this.logger.error(`Timeout error ${error.message}`);
     this.deleteMessage(message);
     return;
   }
@@ -111,7 +111,7 @@ export class SqsConsumerService
       await this.queue.deleteMessage(deleteParams).promise();
       this.logger.debug(`Delete message id:(${message.MessageId})`);
     } catch (err) {
-      this.logger.debug(`Deleting Message(${message?.MessageId}) ERROR`);
+      this.logger.error(`Deleting Message(${message?.MessageId}) ERROR`);
     }
   }
 }
