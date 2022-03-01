@@ -3,7 +3,6 @@ import { NFTTokensService } from '../nft-tokens/nft-tokens.service';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { MediaMessage } from '../sqs-consumer/sqs-consumer.types';
-import RandomString from 'randomstring';
 import { extension } from 'mime-types';
 import { MediaStorageService } from '../media-storage/media-storage.service';
 import { IMediaFileFetcherResponse } from './interface/media-handler';
@@ -162,7 +161,7 @@ export class NFTMediaFilesService {
     extension: string,
     mediaType: MediaFileType,
   ): Promise<string> {
-    const fileName = `${RandomString.generate(6)}.${extension}`;
+    const fileName = `${mediaType}.${extension}`;
     const key = `${contractAddress}/${tokenId}/${fileName}`;
     const bucket = this.getBucketNameByMediaType(mediaType);
     const path = await this.mediaStorageService.upload(bucket, key, file);
