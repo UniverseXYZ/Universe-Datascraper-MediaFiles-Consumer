@@ -10,7 +10,7 @@ export interface MediaFile {
 @Injectable()
 export class MediaStorageService {
   private readonly logger = new Logger(MediaStorageService.name);
-  private s3Client;
+  private s3Client: AWS.S3;
 
   constructor(protected readonly configService: ConfigService) {
     const region = this.configService.get('aws.region');
