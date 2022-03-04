@@ -8,10 +8,6 @@ export default () => ({
   infura: {
     project_id: process.env.INFURA_PROJECT_ID,
   },
-  infura_ipfs: {
-    project_id: process.env.INFURA_IPFS_PROJECT_ID,
-    project_secret: process.env.INFURA_IPFS_PROJECT_SECRET,
-  },
   aws: {
     region: process.env.AWS_REGION,
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
