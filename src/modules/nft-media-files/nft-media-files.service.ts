@@ -67,6 +67,9 @@ export class NFTMediaFilesService {
         );
         const alternativeMediaFiles: AlternativeMediaFile[] = [];
         const mediaType = getMediaTypeByContentType(contentType);
+        this.logger.debug(
+          `Special NFT - Uploading media file, token is ${contractAddress}/${tokenId}, media type is ${mediaType}, and file extension is ${extension}`,
+        );
         const mediaPath = await this.uploadMediaFile(
           file,
           contractAddress,
@@ -122,6 +125,9 @@ export class NFTMediaFilesService {
       );
 
       const mediaType = getMediaTypeByContentType(contentType);
+      this.logger.debug(
+        `Standard NFT - Uploading media file, token is ${contractAddress}/${tokenId}, media type is ${mediaType}, and file extension is ${extension}`,
+      );
       const mediaPath = await this.uploadMediaFile(
         file,
         contractAddress,
@@ -164,7 +170,9 @@ export class NFTMediaFilesService {
     const fileName = `${mediaType}.${extension}`;
     const key = `${contractAddress}/${tokenId}/${fileName}`;
     const bucket = this.getBucketNameByMediaType(mediaType);
+    this.logger.debug(`S3 - Uploading media file ${key} to ${bucket}`);
     const path = await this.mediaStorageService.upload(bucket, key, file);
+    this.logger.debug(`S3 - Media file ${key} uploaded to ${bucket}`);
     return path;
   }
 
@@ -208,7 +216,7 @@ export class NFTMediaFilesService {
         return this.configService.get('aws.audio_bucket');
       case MediaFileType.Model:
         return this.configService.get('aws.model_bucket');
-      case MediaFileType.Misc:
+      default:
         return this.configService.get('aws.misc_bucket');
     }
   }
