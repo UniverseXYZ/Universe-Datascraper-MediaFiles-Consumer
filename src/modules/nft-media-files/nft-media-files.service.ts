@@ -185,10 +185,18 @@ export class NFTMediaFilesService {
       var response;
 
       if(url.includes("https://ipfs.infura.io:5001")){
+        let split = url.split("?")
+        let base: string = split[0]
+        let hash: string = split[1].split("=")[1]
+        this.logger.debug(
+          `Downloading ipfs hash: ${hash} from ${base}`,
+        );  
         response = await axios({
-          url,
+          url: base,
+          data: {
+            'arg': hash
+          },
           method: 'POST',
-          responseType: 'stream',
           auth: {
             username: projectId,
             password: projectSecret,
@@ -208,7 +216,13 @@ export class NFTMediaFilesService {
         return { success: false };
       }
       const contentType = response.headers['content-type'];
+      this.logger.debug(
+        `contentType debug: ${contentType}`,
+      );  
       const ext = extension(contentType);
+      this.logger.debug(
+        `ext debug: ${ext}`,
+      );  
 
       return {
         success: true,
