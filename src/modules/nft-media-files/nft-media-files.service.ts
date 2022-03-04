@@ -180,27 +180,11 @@ export class NFTMediaFilesService {
     url: string,
   ): Promise<IMediaFileFetcherResponse> {
     try {
-      const projectId = this.configService.get('infura_ipfs.project_id');
-      const projectSecret = this.configService.get('infura_ipfs.project_secret');
-      var response;
-
-      if(url.includes("https://ipfs.infura.io:5001")){
-        response = await axios({
-          url,
-          method: 'POST',
-          responseType: 'stream',
-          auth: {
-            username: projectId,
-            password: projectSecret,
-          },
-        }); 
-      } else {
-        response = await axios({
-          url,
-          method: 'GET',
-          responseType: 'stream',
-        });  
-      }
+      const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+      });
 
       const statusCode = response.status;
       if (statusCode !== HttpStatus.OK) {
