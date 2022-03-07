@@ -57,6 +57,9 @@ export class SqsConsumerService
       queueUrl: this.configService.get('aws.queueUrl'),
       sqs: this.queue,
       handleMessage: this.handleMessage.bind(this),
+      handleMessageTimeout: Number(
+        this.configService.get('handle_message_timeout') ?? '150000',
+      ),
     });
 
     this.sqsConsumer.addListener(ERROR_EVENT_NAME, this.onError.bind(this));

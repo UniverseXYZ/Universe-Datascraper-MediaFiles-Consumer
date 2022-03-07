@@ -25,4 +25,5 @@ export default () => ({
   },
   etherscan_api_key: process.env.ETHERSCAN_API_KEY,
   ipfs_gateway: process.env.IPFS_GATEWAY,
+  handle_message_timeout: process.env.HANDLE_MESSAGE_TIMEOUT,
 });
