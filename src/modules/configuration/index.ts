@@ -23,6 +23,7 @@ export default () => ({
     audio_bucket: process.env.AUDIO_BUCKET,
     model_bucket: process.env.MODEL_BUCKET,
     misc_bucket: process.env.MISC_BUCKET,
+    sqs_bucket: process.env.SQS_BUCKET,
   },
   etherscan_api_key: process.env.ETHERSCAN_API_KEY,
   ipfs_gateway: process.env.IPFS_GATEWAY,

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Consumer } from 'sqs-consumer';
 import AWS from 'aws-sdk';
+import SqsExtendedClient from 'sqs-extended-client';
 import {
   ERROR_EVENT_NAME,
   MediaMessage,
@@ -23,7 +24,7 @@ export class SqsConsumerService
 {
   private readonly logger = new Logger(SqsConsumerService.name);
   public sqsConsumer: Consumer;
-  private queue: AWS.SQS;
+  private queue: SqsExtendedClient;
 
   constructor(
     private configService: ConfigService,
@@ -46,13 +47,25 @@ export class SqsConsumerService
 
   public onModuleInit() {
     this.logger.log('Initialize SQS consumer');
-    this.queue = new AWS.SQS({
+
+    const bucketName = this.configService.get('aws.sqs_bucket');
+    
+    this.logger.log(`Initializing SQS Extended Client w/ S3 bucket '${bucketName}'`);
+
+    const sqs = new AWS.SQS({
       httpOptions: {
         agent: new https.Agent({
           keepAlive: true,
         }),
       },
     });
+
+    this.queue = new SqsExtendedClient(
+      sqs,
+      new AWS.S3(),
+      { bucketName }
+    );
+    
     this.sqsConsumer = Consumer.create({
       queueUrl: this.configService.get('aws.queueUrl'),
       sqs: this.queue,
