@@ -16,6 +16,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { NFTMediaFilesService } from '../nft-media-files/nft-media-files.service';
 import https from 'https';
+import { EthereumService } from '../ethereum/ethereum.service';
 
 @Injectable()
 export class SqsConsumerService
@@ -28,6 +29,8 @@ export class SqsConsumerService
   constructor(
     private configService: ConfigService,
     private nftMediaFilesService: NFTMediaFilesService,
+    private ethereumFilesService: EthereumService,
+    
   ) {
     const region = this.configService.get('aws.region');
     const accessKeyId = this.configService.get('aws.accessKeyId');
@@ -81,6 +84,12 @@ export class SqsConsumerService
   }
 
   async handleMessage(message: AWS.SQS.Message): Promise<void> {
+    const ether = this.ethereumFilesService.ether;
+    if (!ether) {
+      this.logger.warn("[CRON MediaFiles Consumer] Provider isn't available. Skipping this iteration. Message will be processed again after visibility timeout ends.");
+      return;
+    }
+
     this.logger.log(`Handle sqs message id:(${message.MessageId})`);
     const mediaMessage: MediaMessage = JSON.parse(message.Body);
     await this.nftMediaFilesService.HandleMediaFiles(mediaMessage);

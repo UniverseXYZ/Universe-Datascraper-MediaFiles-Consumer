@@ -28,72 +28,78 @@ export class NFTMediaFilesService {
   ) {}
 
   async HandleMediaFiles(medias: MediaMessage): Promise<void> {
-    const { contractAddress, tokenId, mediaFiles } = medias;
-    if (contractAddress && tokenId) {
-      this.logger.debug(
-        `Handling media files for ${contractAddress}/${tokenId}`,
-      );
-      const mediaFileRule = Rules.find(
-        (rule) => rule.contractAddress === contractAddress,
-      );
-
-      // Standard NFT
-      if (!mediaFileRule) {
-        await this.standardNFTMediaFileHandler(
-          contractAddress,
-          tokenId,
-          mediaFiles,
-        );
+    try {
+      const { contractAddress, tokenId, mediaFiles } = medias;
+      if (contractAddress && tokenId) {
         this.logger.debug(
-          `Standard NFT - Handled media files for ${contractAddress}/${tokenId}`,
+          `Handling media files for ${contractAddress}/${tokenId}`,
         );
-        return;
+        const mediaFileRule = Rules.find(
+          (rule) => rule.contractAddress === contractAddress,
+        );
+  
+        // Standard NFT
+        if (!mediaFileRule) {
+          await this.standardNFTMediaFileHandler(
+            contractAddress,
+            tokenId,
+            mediaFiles,
+          );
+          this.logger.debug(
+            `Standard NFT - Handled media files for ${contractAddress}/${tokenId}`,
+          );
+          return;
+        }
+  
+        // Special NFT
+        this.logger.debug(
+          `Special NFT - Handling media files for ${contractAddress}/${tokenId}`,
+        );
+        const { success, file, extension, contentType } =
+          await mediaFileRule.mediaFileHandler(
+            tokenId,
+            this.ethereumService.ether,
+            contractAddress,
+            this.nftTokensService,
+          );
+        if (success) {
+          this.logger.debug(
+            `Special NFT - Uploading media file for ${contractAddress}/${tokenId}`,
+          );
+          const alternativeMediaFiles: AlternativeMediaFile[] = [];
+          const mediaType = getMediaTypeByContentType(contentType);
+          this.logger.debug(
+            `Special NFT - Uploading media file, token is ${contractAddress}/${tokenId}, media type is ${mediaType}, and file extension is ${extension}`,
+          );
+          const mediaPath = await this.uploadMediaFile(
+            file,
+            contractAddress,
+            tokenId,
+            extension,
+            mediaType,
+          );
+          alternativeMediaFiles.push({
+            type: mediaType,
+            url: mediaPath,
+          });
+          this.logger.debug(
+            `Special NFT - Media file ${mediaType}/${mediaPath} uploaded for ${contractAddress}/${tokenId}`,
+          );
+          await this.nftTokensService.updateMediaFiles(
+            contractAddress,
+            tokenId,
+            alternativeMediaFiles,
+          );
+          this.logger.debug(
+            `Special NFT - Handled media files for ${contractAddress}/${tokenId}`,
+          );
+        } else {
+          this.logger.error('Special NFT - Fetching media files failed');
+        }
       }
-
-      // Special NFT
-      this.logger.debug(
-        `Special NFT - Handling media files for ${contractAddress}/${tokenId}`,
-      );
-      const { success, file, extension, contentType } =
-        await mediaFileRule.mediaFileHandler(
-          tokenId,
-          this.ethereumService.ether,
-          contractAddress,
-          this.nftTokensService,
-        );
-      if (success) {
-        this.logger.debug(
-          `Special NFT - Uploading media file for ${contractAddress}/${tokenId}`,
-        );
-        const alternativeMediaFiles: AlternativeMediaFile[] = [];
-        const mediaType = getMediaTypeByContentType(contentType);
-        this.logger.debug(
-          `Special NFT - Uploading media file, token is ${contractAddress}/${tokenId}, media type is ${mediaType}, and file extension is ${extension}`,
-        );
-        const mediaPath = await this.uploadMediaFile(
-          file,
-          contractAddress,
-          tokenId,
-          extension,
-          mediaType,
-        );
-        alternativeMediaFiles.push({
-          type: mediaType,
-          url: mediaPath,
-        });
-        this.logger.debug(
-          `Special NFT - Media file ${mediaType}/${mediaPath} uploaded for ${contractAddress}/${tokenId}`,
-        );
-        await this.nftTokensService.updateMediaFiles(
-          contractAddress,
-          tokenId,
-          alternativeMediaFiles,
-        );
-        this.logger.debug(
-          `Special NFT - Handled media files for ${contractAddress}/${tokenId}`,
-        );
-      } else {
-        this.logger.error('Special NFT - Fetching media files failed');
+    } catch(err) {
+      if (err?.error?.reason === 'timeout' || err?.error?.code === 429) {
+        return this.ethereumService.connectToProvider(() => this.HandleMediaFiles(medias));
       }
     }
   }
