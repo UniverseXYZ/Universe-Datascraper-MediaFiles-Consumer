@@ -98,7 +98,7 @@ export class NFTMediaFilesService {
         }
       }
     } catch(err) {
-      if (err?.error?.reason === 'timeout' || err?.error?.code === 429) {
+      if (err?.error?.reason === 'timeout' || err?.error?.code === 429 || err?.error?.status === 403 || err?.error?.code === 'TIMEOUT') {
         return this.ethereumService.connectToProvider(() => this.HandleMediaFiles(medias));
       }
     }
