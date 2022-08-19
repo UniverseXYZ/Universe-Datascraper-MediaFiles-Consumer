@@ -195,4 +195,28 @@ describe('NFT Media files', () => {
     expect(mediaStorageService.upload).toBeCalled();
     expect(nftTokensService.updateMediaFiles).toBeCalled();
   });
+
+  it('should determine the correct mime-type', async () => {
+    const mediaMsg = {
+      contractAddress: '0x6e1b98153399d5E4e710c1A0b803c74d3d7F2957',
+      tokenId: '1',
+      mediaFiles: [],
+    };
+    const imageBase64 = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaW5ZTWluIG1lZXQiIHZpZXdCb3g9IjAgMCAzNTAgMzUwIj48c3R5bGU+LmJhc2UgeyBmaWxsOiB3aGl0ZTsgZm9udC1mYW1pbHk6IG1vbm9zcGFjZTsgZm9udC1zaXplOiAxNHB4OyB9PC9zdHlsZT48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJibGFjayIgLz48dGV4dCB4PSIxMCIgeT0iMjAiIGNsYXNzPSJiYXNlIiBmb250LXNpemU9ImxhcmdlciIgZm9udC13ZWlnaHQ9ImJvbGQiPlRlYW0gIzE8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjQwIiBjbGFzcz0iYmFzZSI+U2FtIERhcm5vbGQ8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjYwIiBjbGFzcz0iYmFzZSI+Q2hhc2UgQ2xheXBvb2w8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjgwIiBjbGFzcz0iYmFzZSI+Q2VlRGVlIExhbWI8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEwMCIgY2xhc3M9ImJhc2UiPk1pa2UgRGF2aXM8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEyMCIgY2xhc3M9ImJhc2UiPkNodWJhIEh1YmJhcmQ8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjE0MCIgY2xhc3M9ImJhc2UiPkRhbGxhcyBHb2VkZXJ0PC90ZXh0Pjx0ZXh0IHg9IjEwIiB5PSIxNjAiIGNsYXNzPSJiYXNlIj5Mb2dhbiBUaG9tYXM8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjE4MCIgY2xhc3M9ImJhc2UiPk8uSi4gSG93YXJkPC90ZXh0Pjwvc3ZnPg=='
+    const data = '<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: monospace; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\" font-size=\"larger\" font-weight=\"bold\">Team #1</text><text x=\"10\" y=\"40\" class=\"base\">Sam Darnold</text><text x=\"10\" y=\"60\" class=\"base\">Chase Claypool</text><text x=\"10\" y=\"80\" class=\"base\">CeeDee Lamb</text><text x=\"10\" y=\"100\" class=\"base\">Mike Davis</text><text x=\"10\" y=\"120\" class=\"base\">Chuba Hubbard</text><text x=\"10\" y=\"140\" class=\"base\">Dallas Goedert</text><text x=\"10\" y=\"160\" class=\"base\">Logan Thomas</text><text x=\"10\" y=\"180\" class=\"base\">O.J. Howard</text></svg>'
+    jest
+    .spyOn(mediaStorageService, 'upload')
+    .mockReturnValue(Promise.resolve('https://image.com'));
+    jest.spyOn(nftTokensService, 'getToken').mockReturnValue(
+      Promise.resolve({
+        contractAddress: '0x6e1b98153399d5E4e710c1A0b803c74d3d7F2957',
+        tokenId: '1',
+        metadata: {
+          image: imageBase64
+        },
+      } as NFTTokensDocument),
+    );
+    await service.HandleMediaFiles(mediaMsg);
+    expect(mediaStorageService.upload).toBeCalledWith(undefined, '0x6e1b98153399d5E4e710c1A0b803c74d3d7F2957/1/image.svg', data, 'image/svg+xml')
+  });
 });
