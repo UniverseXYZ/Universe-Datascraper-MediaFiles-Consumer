@@ -32,11 +32,13 @@ export class MediaStorageService {
     bucket: string,
     key: string,
     data: any,
+    mimeType: string,
   ): Promise<string | undefined> {
     const params = {
       Bucket: bucket,
       Key: key,
       Body: data,
+      ContentType: mimeType || 'application/octet-stream',
     };
     try {
       const res = await this.s3Client.upload(params).promise();

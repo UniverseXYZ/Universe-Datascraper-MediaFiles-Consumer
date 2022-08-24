@@ -3,7 +3,7 @@ import { NFTTokensService } from '../nft-tokens/nft-tokens.service';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { MediaMessage } from '../sqs-consumer/sqs-consumer.types';
-import { extension } from 'mime-types';
+import { extension, lookup } from 'mime-types';
 import { MediaStorageService } from '../media-storage/media-storage.service';
 import { IMediaFileFetcherResponse } from './interface/media-handler';
 import { Rules } from './rule-engine/rules';
@@ -177,7 +177,7 @@ export class NFTMediaFilesService {
     const key = `${contractAddress}/${tokenId}/${fileName}`;
     const bucket = this.getBucketNameByMediaType(mediaType);
     this.logger.debug(`S3 - Uploading media file ${key} to ${bucket}`);
-    const path = await this.mediaStorageService.upload(bucket, key, file);
+    const path = await this.mediaStorageService.upload(bucket, key, file, lookup(extension));
     this.logger.debug(`S3 - Media file ${key} uploaded to ${bucket}`);
     return path;
   }
